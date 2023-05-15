@@ -1901,3 +1901,72 @@ export default {
 </html>
 ```
 
+## 自定义事件
+
+
+
+## 事件总线
+
+1. 一种组件间通信的方式，适用于任意组件间通信。
+
+2. 安装全局事件总线：
+
+   ```js
+   new Vue({
+   	......
+   	beforeCreate() {
+   		Vue.prototype.$bus = this //安装全局事件总线，$bus就是当前应用的vm
+   	},
+       ......
+   }) 
+   ```
+
+3. 使用事件总线：
+
+   1. 接收数据：A组件想接收数据，则在A组件中给$bus绑定自定义事件，事件的回调留在A组件自身。
+
+      ```js
+      methods(){
+        demo(data){......}
+      }
+      ......
+      mounted() {
+        this.$bus.$on('xxxx',this.demo)
+      }
+      ```
+
+   2. 提供数据：`this.$bus.$emit('xxxx',数据)`
+
+4. 最好在beforeDestroy钩子中，用$off去解绑当前组件所用到的事件。
+
+## 消息订阅与发布
+
+1. 一种组件间通信的方式，适用于任意组件间通信。
+
+2. 使用步骤：
+
+   1. 安装pubsub：`npm i pubsub-js`
+
+   2. 引入: `import pubsub from 'pubsub-js'`
+
+   3. 接收数据：A组件想接收数据，则在A组件中订阅消息，订阅的回调留在A组件自身。
+
+      ```js
+      methods(){
+        demo(data){......}
+      }
+      ......
+      mounted() {
+        this.pid = pubsub.subscribe('xxx',this.demo) //订阅消息
+      }
+      ```
+
+   4. 提供数据：`pubsub.publish('xxx',数据)`
+
+   5. 最好在beforeDestroy钩子中，用`PubSub.unsubscribe(pid)`去取消订阅。
+
+## nextTick
+
+1. 语法：`this.$nextTick(回调函数)`
+2. 作用：在下一次 DOM 更新结束后执行其指定的回调。
+3. 什么时候用：当改变数据后，要基于更新后的新DOM进行某些操作时，要在nextTick所指定的回调函数中执行。
