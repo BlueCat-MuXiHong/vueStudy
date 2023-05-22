@@ -19,13 +19,13 @@ const router = new VueRouter({
         {
             path: '/home',
             component: Home,
-            meta:{isAuth:false},
+            meta: {isAuth: false},
             children: [
                 //子路由
                 {
                     path: 'message',
                     component: Message,
-                    meta:{isAuth:true},
+                    meta: {isAuth: true},
                     children: [
                         //query写法
                         // {
@@ -36,17 +36,17 @@ const router = new VueRouter({
                         // }
                         //params写法
                         {
-                            name : 'detail',
+                            name: 'detail',
                             path: 'detail/:id/:title',
-                            component: Detail,meta:{isAuth:false},
+                            component: Detail, meta: {isAuth: false},
 
                             //第一种写法，值为对象
                             // props:{a:1,b:'hello'}
                             //第二种写法,值为布尔值，若布尔值为真，就会把该路由组件收到得所有params参数以props得形式传递给组件
                             // props:true
                             //第三种写法,值为函数，若布尔值为真，就会把该路由组件收到得所有params参数以props得形式传递给组件
-                            props($route){
-                                return {id:$route.query.id,title:$route.query.title}
+                            props($route) {
+                                return {id: $route.query.id, title: $route.query.title}
                             }
                         }
                     ]
@@ -54,31 +54,43 @@ const router = new VueRouter({
                 {
                     path: 'news',
                     component: News,
-                    meta:{isAuth:true}
+                    meta: {isAuth: true},
+                    //独享路由守卫    独享路由守卫没有后置路由
+                    beforeEnter: (to, from, next) => {
+                        console.log("前置路由守卫被调用")
+                        if (to.meta.isAuth) { //判断是否需要鉴权
+                            if (localStorage.getItem("school") === '1') {
+                                next();
+                            } else {
+                                console.log(11)
+                                alert("失效")
+                            }
+                        } else {
+                            next();
+                        }
+                    }
                 }
             ]
         }
     ]
 })
 //全局前置路由守卫（每一次路由切换之前被调用）
-router.beforeEach((to,from,next)=>{
+router.beforeEach((to, from, next) => {
     console.log("前置路由守卫被调用")
-    console.log(localStorage.getItem('school'))
-    console.log(localStorage.getItem('school')==='1')
-    if (to.meta.isAuth){ //判断是否需要鉴权
-        if (localStorage.getItem("school")==='1'){
+    if (to.meta.isAuth) { //判断是否需要鉴权
+        if (localStorage.getItem("school") === '1') {
             next();
-        }else {
+        } else {
             console.log(11)
             alert("失效")
         }
-    }else {
+    } else {
         next();
     }
 })
 //全局后置路由守卫   后置路由守卫没有next
-router.afterEach((to,from)=>{
-    console.log("后置路由守卫被调用",to,from)
+router.afterEach((to, from) => {
+    console.log("后置路由守卫被调用", to, from)
 
     // document.title=to.meta.title
 })
