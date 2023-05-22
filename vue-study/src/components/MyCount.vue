@@ -1,9 +1,9 @@
 <template>
 	<div>
-		<h1>当前求和为：{{ sum }}</h1>
-		<h1>当前求和放大10：{{ bigSum }}</h1>
-		<h2>我在：{{ school }},学习：{{subject}}</h2>
-    <h2>下方的总人数是：{{personList.length}}</h2>
+		<h1>当前求和为：{{ countOptions.sum }}</h1>
+		<h1>当前求和放大10：{{ countOptions.bigSum }}</h1>
+		<h2>我在：{{ countOptions.school }},学习：{{countOptions.subject}}</h2>
+    <h2>下方的总人数是：{{personOptions.personList.length}}</h2>
 		<select v-model.number="n">
 			<option value="1">1</option>
 			<option value="2">2</option>
@@ -40,7 +40,7 @@
 			// ...mapState({sum:'sum',school:'school',subject:'subject'}),
 			//借助mapstate生成属性，从state中读取数据。（数组写法）
 					//属性名和计算属性名相同
-			...mapState(['sum','school','subject','personList']),
+			...mapState(['countOptions','personOptions']),
 
 
 			// bigSum(){
@@ -56,18 +56,18 @@
 			// 	this.$store.commit('ADD',this.n)
 			// },
 			//借助mapMutations 生成对应的方法，方法中会调用commit去联系mutations(对象写法)
-			...mapMutations({increment:'ADD'}),
+			...mapMutations('countOptions',{increment:'ADD'}),
 			decrement(){
 				// this.$store.dispatch('minus',this.n)
 				//没有业务逻辑直接commit
-				this.$store.commit('MINUS',this.n)
+				this.$store.commit('countOptions/MINUS',this.n)
 			},
 			// incrementOdd(){
 			// 	this.$store.dispatch('addOdd',this.n)
 			// },
-			...mapActions({incrementOdd:'addOdd'}),
+			...mapActions('countOptions',{incrementOdd:'addOdd'}),
 			incrementWait(){
-				this.$store.dispatch('addWait',this.n)
+				this.$store.dispatch('countOptions/addWait',this.n)
 			},
 		},mounted() {
 			const x = mapState({sum:'sum',school:'school',subject:'subject'})
