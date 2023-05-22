@@ -9,7 +9,7 @@ import Message from '../components/MyMessage.vue'
 import News from '../components/MyNews.vue'
 import Detail from "@/components/MyDetail.vue";
 //创建并暴露一个路由器
-export default new VueRouter({
+const router = new VueRouter({
     routes: [
         // 一级路由
         {
@@ -19,11 +19,13 @@ export default new VueRouter({
         {
             path: '/home',
             component: Home,
+            meta:{isAuth:false},
             children: [
                 //子路由
                 {
                     path: 'message',
                     component: Message,
+                    meta:{isAuth:true},
                     children: [
                         //query写法
                         // {
@@ -36,7 +38,8 @@ export default new VueRouter({
                         {
                             name : 'detail',
                             path: 'detail/:id/:title',
-                            component: Detail,
+                            component: Detail,meta:{isAuth:false},
+
                             //第一种写法，值为对象
                             // props:{a:1,b:'hello'}
                             //第二种写法,值为布尔值，若布尔值为真，就会把该路由组件收到得所有params参数以props得形式传递给组件
@@ -50,9 +53,29 @@ export default new VueRouter({
                 },
                 {
                     path: 'news',
-                    component: News
+                    component: News,
+                    meta:{isAuth:true}
                 }
             ]
         }
     ]
 })
+//全局前置路由守卫（每一次路由切换之前被调用）
+router.beforeEach((to,from,next)=>{
+    console.log("被调用")
+    console.log(localStorage.getItem('school'))
+    console.log(localStorage.getItem('school')==='1')
+    if (to.meta.isAuth){ //判断是否需要鉴权
+        if (localStorage.getItem("school")==='1'){
+            next();
+        }else {
+            console.log(11)
+            alert("失效")
+        }
+    }else {
+        next();
+    }
+})
+//全局后置路由守卫
+
+export default router
