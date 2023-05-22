@@ -62,7 +62,7 @@ const router = new VueRouter({
 })
 //全局前置路由守卫（每一次路由切换之前被调用）
 router.beforeEach((to,from,next)=>{
-    console.log("被调用")
+    console.log("前置路由守卫被调用")
     console.log(localStorage.getItem('school'))
     console.log(localStorage.getItem('school')==='1')
     if (to.meta.isAuth){ //判断是否需要鉴权
@@ -76,6 +76,10 @@ router.beforeEach((to,from,next)=>{
         next();
     }
 })
-//全局后置路由守卫
+//全局后置路由守卫   后置路由守卫没有next
+router.afterEach((to,from)=>{
+    console.log("后置路由守卫被调用",to,from)
 
+    // document.title=to.meta.title
+})
 export default router
