@@ -8,9 +8,6 @@
       </div>
       <div class="row">
         <div class="col-xs-2 col-xs-offset-2">
-          <button @click="back">退后</button>
-          <button @click="test">退后、前进</button>
-          <button @click="forword">前进</button>
           <div class="list-group">
             <!-- 原始html中我们使用a标签实现页面的跳转 -->
             <!-- <a class="list-group-item active" href="./about.html">About</a> -->
@@ -36,17 +33,6 @@
 
 <script>
 	export default {
-		name:'App',
-    methods:{
-      back(){
-        this.$router.back()
-      },
-      forword(){
-        this.$router.forward()
-      },
-      test(){
-        this.$router.go(-2)
-      }
-    }
+		name:'App'
 	}
 </script>
