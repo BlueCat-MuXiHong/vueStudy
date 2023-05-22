@@ -37,13 +37,20 @@ const mutations = {
     MINUS(state,value){
         console.log("mutations中MINUS被调用",state,value)
         state.sum-=value
+    },
+    ADD_PERSON(state,value){
+        console.log("mutations中ADD_PERSON被调用",state,value)
+        state.personList.unshift(value)
     }
 }
 //准备state --用于存储数据
 const  state = {
     sum:0, //当前的和
     school:'尚硅谷',
-    subject:'前端'
+    subject:'前端',
+    personList:[
+        {id:'001',name : '张三'}
+    ]
 }
 const getters={
     bigSum(state){
