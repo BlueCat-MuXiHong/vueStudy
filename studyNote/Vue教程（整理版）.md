@@ -466,3 +466,193 @@ data与el的2种写法
 </script>
 ```
 
+***
+
+## 监视属性
+
+### 普通监视
+
+监视属性watch：
+    1.当被监视的属性变化时, 回调函数自动调用, 进行相关操作
+    2.监视的属性必须存在，才能进行监视！！
+    3.监视的两种写法：
+          (1).new Vue时传入watch配置
+          (2).通过vm.$watch监视
+
+```vue
+<body>
+    <div id="root">
+        <h2>今天天气很{{info}}</h2>
+        <button @click="changeWeather">切换天气</button>
+    </div>
+</body>
+<script type="text/javascript">
+    Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+    const vm = new Vue({
+        el:'#root',
+        data:{
+            isHot:true,
+        },
+        computed:{
+            info(){
+                return this.isHot ? '炎热' : '凉爽'
+            }
+        },
+        methods: {
+            changeWeather(){
+                this.isHot = !this.isHot
+            }
+        },
+        watch:{
+				//正常写法
+				/* isHot:{
+					// immediate:true, //初始化时让handler调用一下
+					// deep:true,//深度监视
+					handler(newValue,oldValue){
+						console.log('isHot被修改了',newValue,oldValue)
+					}
+				}, */
+				//简写
+				/* isHot(newValue,oldValue){
+					console.log('isHot被修改了',newValue,oldValue,this)
+				} */
+			}
+    })
+    vm.$watch('isHot',{
+        immediate:true, //初始化时让handler调用一下
+        //handler什么时候调用？当isHot发生改变时。
+        handler(newValue,oldValue){
+            console.log('isHot被修改了',newValue,oldValue)
+        }
+    })
+    //简写
+		/* vm.$watch('isHot',(newValue,oldValue)=>{
+			console.log('isHot被修改了',newValue,oldValue,this)
+		}) */
+</script>
+```
+
+***
+
+### 深度监视
+
+深度监视：
+       (1).Vue中的watch默认不监测对象内部值的改变（一层）。
+       (2).配置deep:true可以监测对象内部值改变（多层）。
+备注：
+       (1).Vue自身可以监测对象内部值的改变，但Vue提供的watch默认不可以！
+       (2).使用watch时根据数据的具体结构，决定是否采用深度监视。
+
+```vue
+<body>
+    <div id="root">
+        <h2>今天天气很{{info}}</h2>
+        <button @click="changeWeather">切换天气</button>
+        <hr/>
+        <h3>a的值是:{{numbers.a}}</h3>
+        <button @click="numbers.a++">点我让a+1</button>
+        <h3>b的值是:{{numbers.b}}</h3>
+        <button @click="numbers.b++">点我让b+1</button>
+        <button @click="numbers = {a:666,b:888}">彻底替换掉numbers</button>
+        {{numbers.c.d.e}}
+    </div>
+</body>
+<script type="text/javascript">
+    Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+    const vm = new Vue({
+        el:'#root',
+        data:{
+            isHot:true,
+            numbers:{
+                a:1,
+                b:1,
+                c:{
+                    d:{
+                        e:100
+                    }
+                }
+            }
+        },
+        computed:{
+            info(){
+                return this.isHot ? '炎热' : '凉爽'
+            }
+        },
+        methods: {
+            changeWeather(){
+                this.isHot = !this.isHot
+            }
+        },
+        watch:{
+            isHot:{
+                // immediate:true, //初始化时让handler调用一下
+                //handler什么时候调用？当isHot发生改变时。
+                handler(newValue,oldValue){
+                    console.log('isHot被修改了',newValue,oldValue)
+                }
+            },
+            //监视多级结构中某个属性的变化
+            /* 'numbers.a':{
+					handler(){
+						console.log('a被改变了')
+					}
+				} */
+            //监视多级结构中所有属性的变化
+            numbers:{
+                deep:true,
+                handler(){
+                    console.log('numbers改变了')
+                }
+            }
+        }
+    })
+</script>
+```
+
+
+
+***
+
+### computed和watch之间的区别
+
+computed和watch之间的区别：
+       1.computed能完成的功能，watch都可以完成。
+       2.watch能完成的功能，computed不一定能完成，例如：watch可以进行异步操作。
+两个重要的小原则：
+          1.所被Vue管理的函数，最好写成普通函数，这样this的指向才是vm 或 组件实例对象。
+          2.所有不被Vue所管理的函数（定时器的回调函数、ajax的回调函数等、Promise的回调函数），最好写成箭头函数，
+             这样this的指向才是vm 或 组件实例对象。
+
+```vue
+<body>
+    <!-- 准备好一个容器-->
+    <div id="root">
+        姓：<input type="text" v-model="firstName"> <br/><br/>
+        名：<input type="text" v-model="lastName"> <br/><br/>
+        全名：<span>{{fullName}}</span> <br/><br/>
+    </div>
+</body>
+<script type="text/javascript">
+    Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+    const vm = new Vue({
+        el:'#root',
+        data:{
+            firstName:'张',
+            lastName:'三',
+            fullName:'张-三'
+        },
+        watch:{
+            firstName(val){
+                setTimeout(()=>{
+                    console.log(this)
+                    this.fullName = val + '-' + this.lastName
+                },1000);
+            },
+            lastName(val){
+                this.fullName = this.firstName + '-' + val
+            }
+        }
+    })
+</script>
+```
+
