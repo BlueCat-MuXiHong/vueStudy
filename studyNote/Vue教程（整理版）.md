@@ -2097,10 +2097,42 @@ Vue中使用组件的三大步骤：
 ## ref属性
 
 1. 被用来给元素或子组件注册引用信息（id的替代者）
+
 2. 应用在html标签上获取的是真实DOM元素，应用在组件标签上是组件实例对象（vc）
+
 3. 使用方式：
     1. 打标识：```<h1 ref="xxx">.....</h1>``` 或 ```<School ref="xxx"></School>```
     2. 获取：```this.$refs.xxx```
+    
+    ```vue
+    <template>
+    <div>
+        <h1 v-text="msg" ref="title"></h1>
+        <button ref="btn" @click="showDOM">点我输出上方的DOM元素</button>
+        <School ref="sch"/>
+        </div>
+    </template>
+    <script>
+        //引入School组件
+        import School from './components/School'
+        export default {
+            name:'App',
+            components:{School},
+            data() {
+                return {
+                    msg:'欢迎学习Vue！'
+                }
+            },
+            methods: {
+                showDOM(){
+                    console.log(this.$refs.title) //真实DOM元素
+                    console.log(this.$refs.btn) //真实DOM元素
+                    console.log(this.$refs.sch) //School组件的实例对象（vc）
+                }
+            },
+        }
+    </script>
+    ```
 
 ## props配置项
 
@@ -2127,6 +2159,69 @@ Vue中使用组件的三大步骤：
         ```
 
     > 备注：props是只读的，Vue底层会监测你对props的修改，如果进行了修改，就会发出警告，若业务需求确实需要修改，那么请复制props的内容到data中一份，然后去修改data中的数据。
+    
+    ```vue
+    <template>
+    	<div>
+    		<Student name="李四" sex="女" :age="18"/>
+    	</div>
+    </template>
+    ```
+    
+    ```vue
+    <template>
+    <div>
+        <h1>{{msg}}</h1>
+        <h2>学生姓名：{{name}}</h2>
+        <h2>学生性别：{{sex}}</h2>
+        <h2>学生年龄：{{myAge+1}}</h2>
+        <button @click="updateAge">尝试修改收到的年龄</button>
+        </div>
+    </template>
+    
+    <script>
+        export default {
+            name:'Student',
+            data() {
+                console.log(this)
+                return {
+                    msg:'我是一个尚硅谷的学生',
+                    myAge:this.age
+                }
+            },
+            methods: {
+                updateAge(){
+                    this.myAge++
+                }
+            },
+            //简单声明接收
+            // props:['name','age','sex'] 
+    
+            //接收的同时对数据进行类型限制
+            /* props:{
+    			name:String,
+    			age:Number,
+    			sex:String
+    		} */
+    
+            //接收的同时对数据：进行类型限制+默认值的指定+必要性的限制
+            props:{
+                name:{
+                    type:String, //name的类型是字符串
+                    required:true, //name是必要的
+                },
+                age:{
+                    type:Number,
+                    default:99 //默认值
+                },
+                sex:{
+                    type:String,
+                    required:true
+                }
+            }
+        }
+    </script>
+    ```
 
 ## mixin(混入)
 
@@ -2149,6 +2244,76 @@ Vue中使用组件的三大步骤：
     	全局混入：```Vue.mixin(xxx)```
     	局部混入：```mixins:['xxx']	```
 
+```vue
+export const hunhe = {
+	methods: {
+		showName(){
+			alert(this.name)
+		}
+	},
+	mounted() {
+		console.log('你好啊！')
+	},
+}
+export const hunhe2 = {
+	data() {
+		return {
+			x:100,
+			y:200
+		}
+	},
+}
+```
+
+```vue
+<template>
+	<div>
+		<h2 @click="showName">学生姓名：{{name}}</h2>
+		<h2>学生性别：{{sex}}</h2>
+	</div>
+</template>
+
+<script>
+	// import {hunhe,hunhe2} from '../mixin'
+
+	export default {
+		name:'Student',
+		data() {
+			return {
+				name:'张三',
+				sex:'男'
+			}
+		},
+		// mixins:[hunhe,hunhe2]
+	}
+</script>
+```
+
+```vue
+<template>
+	<div>
+		<h2 @click="showName">学校名称：{{name}}</h2>
+		<h2>学校地址：{{address}}</h2>
+	</div>
+</template>
+
+<script>
+	//引入一个hunhe
+	// import {hunhe,hunhe2} from '../mixin'
+	export default {
+		name:'School',
+		data() {
+			return {
+				name:'尚硅谷',
+				address:'北京',
+				x:666
+			}
+		},
+		// mixins:[hunhe,hunhe2],
+	}
+</script>
+```
+
 ## 插件
 
 1. 功能：用于增强Vue
@@ -2158,23 +2323,64 @@ Vue中使用组件的三大步骤：
 3. 定义插件：
 
     ```js
-    对象.install = function (Vue, options) {
-        // 1. 添加全局过滤器
-        Vue.filter(....)
+    export default {
+    	install(Vue,x,y,z){
+    		console.log(x,y,z)
+    		//全局过滤器
+    		Vue.filter('mySlice',function(value){
+    			return value.slice(0,4)
+    		})
     
-        // 2. 添加全局指令
-        Vue.directive(....)
-    
-        // 3. 配置全局混入(合)
-        Vue.mixin(....)
-    
-        // 4. 添加实例方法
-        Vue.prototype.$myMethod = function () {...}
-        Vue.prototype.$myProperty = xxxx
+    		//定义全局指令
+    		Vue.directive('fbind',{
+    			//指令与元素成功绑定时（一上来）
+    			bind(element,binding){
+    				element.value = binding.value
+    			},
+    			//指令所在元素被插入页面时
+    			inserted(element,binding){
+    				element.focus()
+    			},
+    			//指令所在的模板被重新解析时
+    			update(element,binding){
+    				element.value = binding.value
+    			}
+    		})
+    		//定义混入
+    		Vue.mixin({
+    			data() {
+    				return {
+    					x:100,
+    					y:200
+    				}
+    			},
+    		})
+    		//给Vue原型上添加一个方法（vm和vc就都能用了）
+    		Vue.prototype.hello = ()=>{alert('你好啊')}
+    	}
     }
     ```
 
 4. 使用插件：```Vue.use()```
+
+```js
+//引入Vue
+import Vue from 'vue'
+//引入App
+import App from './App.vue'
+//引入插件
+import plugins from './plugins'
+//关闭Vue的生产提示
+Vue.config.productionTip = false
+
+//应用（使用）插件
+Vue.use(plugins,1,2,3)
+//创建vm
+new Vue({
+	el:'#app',
+	render: h => h(App)
+})
+```
 
 ## scoped样式
 
@@ -2234,6 +2440,90 @@ Vue中使用组件的三大步骤：
     2. LocalStorage存储的内容，需要手动清除才会消失。
     3. ```xxxxxStorage.getItem(xxx)```如果xxx对应的value获取不到，那么getItem的返回值是null。
     4. ```JSON.parse(null)```的结果依然是null。
+    
+    ```html
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="UTF-8" />
+            <title>localStorage</title>
+        </head>
+        <body>
+            <h2>localStorage</h2>
+            <button onclick="saveData()">点我保存一个数据</button>
+            <button onclick="readData()">点我读取一个数据</button>
+            <button onclick="deleteData()">点我删除一个数据</button>
+            <button onclick="deleteAllData()">点我清空一个数据</button>
+    
+            <script type="text/javascript" >
+                let p = {name:'张三',age:18}
+    
+                function saveData(){
+                    localStorage.setItem('msg','hello!!!')
+                    localStorage.setItem('msg2',666)
+                    localStorage.setItem('person',JSON.stringify(p))
+                }
+                function readData(){
+                    console.log(localStorage.getItem('msg'))
+                    console.log(localStorage.getItem('msg2'))
+    
+                    const result = localStorage.getItem('person')
+                    console.log(JSON.parse(result))
+    
+                    // console.log(localStorage.getItem('msg3'))
+                }
+                function deleteData(){
+                    localStorage.removeItem('msg2')
+                }
+                function deleteAllData(){
+                    localStorage.clear()
+                }
+            </script>
+        </body>
+    </html>
+    ```
+    
+    ```html
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="UTF-8" />
+            <title>sessionStorage</title>
+        </head>
+        <body>
+            <h2>sessionStorage</h2>
+            <button onclick="saveData()">点我保存一个数据</button>
+            <button onclick="readData()">点我读取一个数据</button>
+            <button onclick="deleteData()">点我删除一个数据</button>
+            <button onclick="deleteAllData()">点我清空一个数据</button>
+    
+            <script type="text/javascript" >
+                let p = {name:'张三',age:18}
+    
+                function saveData(){
+                    sessionStorage.setItem('msg','hello!!!')
+                    sessionStorage.setItem('msg2',666)
+                    sessionStorage.setItem('person',JSON.stringify(p))
+                }
+                function readData(){
+                    console.log(sessionStorage.getItem('msg'))
+                    console.log(sessionStorage.getItem('msg2'))
+    
+                    const result = sessionStorage.getItem('person')
+                    console.log(JSON.parse(result))
+    
+                    // console.log(sessionStorage.getItem('msg3'))
+                }
+                function deleteData(){
+                    sessionStorage.removeItem('msg2')
+                }
+                function deleteAllData(){
+                    sessionStorage.clear()
+                }
+            </script>
+        </body>
+    </html>
+    ```
 
 ## 组件的自定义事件
 
@@ -2264,6 +2554,137 @@ Vue中使用组件的三大步骤：
 6. 组件上也可以绑定原生DOM事件，需要使用```native```修饰符。
 
 7. 注意：通过```this.$refs.xxx.$on('atguigu',回调)```绑定自定义事件时，回调<span style="color:red">要么配置在methods中</span>，<span style="color:red">要么用箭头函数</span>，否则this指向会出问题！
+
+案例：
+
+```vue
+APP
+<template>
+<div class="app">
+    <h1>{{msg}}，学生姓名是:{{studentName}}</h1>
+
+    <!-- 通过父组件给子组件传递函数类型的props实现：子给父传递数据 -->
+    <School :getSchoolName="getSchoolName"/>
+
+    <!-- 通过父组件给子组件绑定一个自定义事件实现：子给父传递数据（第一种写法，使用@或v-on） -->
+    <!-- <Student @atguigu="getStudentName" @demo="m1"/> -->
+
+    <!-- 通过父组件给子组件绑定一个自定义事件实现：子给父传递数据（第二种写法，使用ref） -->
+    <Student ref="student" @click.native="show"/>
+    </div>
+</template>
+
+<script>
+    import Student from './components/Student'
+    import School from './components/School'
+
+    export default {
+        name:'App',
+        components:{School,Student},
+        data() {
+            return {
+                msg:'你好啊！',
+                studentName:''
+            }
+        },
+        methods: {
+            getSchoolName(name){
+                console.log('App收到了学校名：',name)
+            },
+            getStudentName(name,...params){
+                console.log('App收到了学生名：',name,params)
+                this.studentName = name
+            },
+            m1(){
+                console.log('demo事件被触发了！')
+            },
+            show(){
+                alert(123)
+            }
+        },
+        mounted() {
+            this.$refs.student.$on('atguigu',this.getStudentName) //绑定自定义事件
+            // this.$refs.student.$once('atguigu',this.getStudentName) //绑定自定义事件（一次性）
+        },
+    }
+</script>
+
+```
+
+```vue
+<template>
+    <div class="school">
+        <h2>学校名称：{{name}}</h2>
+        <h2>学校地址：{{address}}</h2>
+        <button @click="sendSchoolName">把学校名给App</button>
+    </div>
+</template>
+<script>
+    export default {
+        name:'School',
+        props:['getSchoolName'],
+        data() {
+            return {
+                name:'尚硅谷',
+                address:'北京',
+            }
+        },
+        methods: {
+            sendSchoolName(){
+                this.getSchoolName(this.name)
+            }
+        },
+    }
+</script>
+```
+
+```vue
+<template>
+<div class="student">
+    <h2>学生姓名：{{name}}</h2>
+    <h2>学生性别：{{sex}}</h2>
+    <h2>当前求和为：{{number}}</h2>
+    <button @click="add">点我number++</button>
+    <button @click="sendStudentlName">把学生名给App</button>
+    <button @click="unbind">解绑atguigu事件</button>
+    <button @click="death">销毁当前Student组件的实例(vc)</button>
+    </div>
+</template>
+
+<script>
+    export default {
+        name:'Student',
+        data() {
+            return {
+                name:'张三',
+                sex:'男',
+                number:0
+            }
+        },
+        methods: {
+            add(){
+                console.log('add回调被调用了')
+                this.number++
+            },
+            sendStudentlName(){
+                //触发Student组件实例身上的atguigu事件
+                this.$emit('atguigu',this.name,666,888,900)
+                // this.$emit('demo')
+                // this.$emit('click')
+            },
+            unbind(){
+                this.$off('atguigu') //解绑一个自定义事件
+                // this.$off(['atguigu','demo']) //解绑多个自定义事件
+                // this.$off() //解绑所有的自定义事件
+            },
+            death(){
+                this.$destroy() //销毁了当前Student组件的实例，销毁后所有Student实例的自定义事件全都不奏效。
+            }
+        },
+    }
+</script>
+
+```
 
 ## 全局事件总线（GlobalEventBus）
 
@@ -2298,6 +2719,124 @@ Vue中使用组件的三大步骤：
    2. 提供数据：```this.$bus.$emit('xxxx',数据)```
 
 4. 最好在beforeDestroy钩子中，用$off去解绑<span style="color:red">当前组件所用到的</span>事件。
+
+案例：
+
+```js
+//引入Vue
+import Vue from 'vue'
+//引入App
+import App from './App.vue'
+//关闭Vue的生产提示
+Vue.config.productionTip = false
+//创建vm
+new Vue({
+	el:'#app',
+	render: h => h(App),
+	beforeCreate() {
+		Vue.prototype.$bus = this //安装全局事件总线
+	},
+})
+```
+
+```vue
+app
+<template>
+	<div class="app">
+		<h1>{{msg}}</h1>
+		<School/>
+		<Student/>
+	</div>
+</template>
+<script>
+	import Student from './components/Student'
+	import School from './components/School'
+	export default {
+		name:'App',
+		components:{School,Student},
+		data() {
+			return {
+				msg:'你好啊！',
+			}
+		}
+	}
+</script>
+<style scoped>
+	.app{
+		background-color: gray;
+		padding: 5px;
+	}
+</style>
+
+```
+
+```vue
+<template>
+<div class="student">
+    <h2>学生姓名：{{name}}</h2>
+    <h2>学生性别：{{sex}}</h2>
+    <button @click="sendStudentName">把学生名给School组件</button>
+    </div>
+</template>
+
+<script>
+    export default {
+        name:'Student',
+        data() {
+            return {
+                name:'张三',
+                sex:'男',
+            }
+        },
+        mounted() {
+            // console.log('Student',this.x)
+        },
+        methods: {
+            sendStudentName(){
+                this.$bus.$emit('hello',this.name)
+            }
+        },
+    }
+</script>
+
+<style lang="less" scoped>
+    .student{
+        background-color: pink;
+        padding: 5px;
+        margin-top: 30px;
+    }
+</style>
+
+```
+
+```vue
+<template>
+	<div class="school">
+		<h2>学校名称：{{name}}</h2>
+		<h2>学校地址：{{address}}</h2>
+	</div>
+</template>
+<script>
+	export default {
+		name:'School',
+		data() {
+			return {
+				name:'尚硅谷',
+				address:'北京',
+			}
+		},
+		mounted() {
+			// console.log('School',this)
+			this.$bus.$on('hello',(data)=>{
+				console.log('我是School组件，收到了数据',data)
+			})
+		},
+		beforeDestroy() {
+			this.$bus.$off('hello')
+		},
+	}
+</script>
+```
 
 ## 消息订阅与发布（pubsub）
 
@@ -2501,9 +3040,6 @@ module.exports = {
                      }
                  </script>
          ```
-   ```
-   
-   ```
 
 ## Vuex
 
